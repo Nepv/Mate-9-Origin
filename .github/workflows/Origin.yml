@@ -51,7 +51,7 @@ jobs:
         ls -al
         cd ..
         ls -al
-        mv ./tools/kernel.img ../
+        mv ./tools/kernel.img ../../
         ls -al
         cd ..
         ls -al
