@@ -30,7 +30,7 @@ jobs:
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         wget https://download-c1.huawei.com/download/downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E
         wget https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
-        tar -zxvf MHA-AL00_02_HarmonyOS_opensource.tar.gz
+        tar -zxvf ‘downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E’
         unzip android-ndk-r17c-linux-x86_64.zip
     - name: Build Kernel
       run: |
@@ -40,6 +40,7 @@ jobs:
         export PATH=$PATH:$(pwd)/android-ndk-r17c/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin
         export PATH=$PATH:$ANDROID_AARCH64
         export CROSS_COMPILE=aarch64-linux-android-
+        cd Code_Opensource/kernel/
         mkdir ./out
         make ARCH=arm64 O=./out merge_hi3660_defconfig
         make ARCH=arm64 O=./out -j4
@@ -47,7 +48,7 @@ jobs:
         cd ./tools/
         ./mkbootimg --kernel kernel --base 0x00078000 --cmdline "loglevel=4 initcall_debug=n page_tracker=on slub_min_objects=16 unmovable_isolate1=2:192M,3:224M,4:256M printktimer=0xfff0a000,0x534,0x538 androidboot.selinux=enforcing buildvariant=user" --tags_offset 0x07988000 --kernel_offset 0x00008000 --ramdisk_offset 0x07b88000 --header_version 1 --os_version 9.0.0 --os_patch_level 2020-10  --output kernel.img
         cd ..
-        mv ./tools/kernel.img ./
+        mv ./tools/kernel.img ../
     - name: Upload Kernel
       uses: actions/upload-artifact@v4
       with:
