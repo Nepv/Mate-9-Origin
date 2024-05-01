@@ -30,7 +30,7 @@ jobs:
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         wget https://download-c1.huawei.com/download/downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E
         wget https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
-        tar -zxvf ‘downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E’
+        tar -zxvf downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E
         unzip android-ndk-r17c-linux-x86_64.zip
     - name: Build Kernel
       run: |
