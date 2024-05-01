@@ -53,6 +53,8 @@ jobs:
         ls -al
         mv ./tools/kernel.img ../
         ls -al
+        cd ..
+        ls -al
     - name: Upload Kernel
       uses: actions/upload-artifact@v4
       with:
