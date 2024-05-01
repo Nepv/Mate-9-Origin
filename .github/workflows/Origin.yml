@@ -1,0 +1,56 @@
+name: Build Huawei Mate 9 Kernel
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_MAXSIZE: "2G"
+      CCACHE_HARDLINK: "true"
+      KERNEL_CMDLINE: "ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out"
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+        fetch-depth: 100
+    - name: Set up ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt upgrade -y
+        sudo apt install binutils make python2 libssl-dev flex unzip libssl-dev ca-certificates xz-utils mkbootimg cpio device-tree-compiler git git-lfs bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev adb fastboot -y
+        sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+        wget https://download-c1.huawei.com/download/downloadCenter?downloadId=C156FE836D4C5D2706DF1C2E4A57E51E
+        wget https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip
+        tar -zxvf MHA-AL00_02_HarmonyOS_opensource.tar.gz
+        unzip android-ndk-r17c-linux-x86_64.zip
+    - name: Build Kernel
+      run: |
+        export ANDROID_AARCH64=$GITHUB_WORKSPACE/Mate-9-Origin/android-ndk-r17c/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export PATH=$PATH:$(pwd)/android-ndk-r17c/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin
+        export PATH=$PATH:$ANDROID_AARCH64
+        export CROSS_COMPILE=aarch64-linux-android-
+        mkdir ./out
+        make ARCH=arm64 O=./out merge_hi3660_defconfig
+        make ARCH=arm64 O=./out -j4
+        cp -rv ./out/arch/arm64/boot/Image.gz ./tools/kernel
+        cd ./tools/
+        ./mkbootimg --kernel kernel --base 0x00078000 --cmdline "loglevel=4 initcall_debug=n page_tracker=on slub_min_objects=16 unmovable_isolate1=2:192M,3:224M,4:256M printktimer=0xfff0a000,0x534,0x538 androidboot.selinux=enforcing buildvariant=user" --tags_offset 0x07988000 --kernel_offset 0x00008000 --ramdisk_offset 0x07b88000 --header_version 1 --os_version 9.0.0 --os_patch_level 2020-10  --output kernel.img
+        cd ..
+        mv ./tools/kernel.img ./
+    - name: Upload Kernel
+      uses: actions/upload-artifact@v4
+      with:
+        name: Kernel
+        path: "kernel.img"
+        compression-level: 9
